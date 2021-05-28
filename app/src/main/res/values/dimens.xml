@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_size_medium">25sp</dimen>
+    <dimen name="text_size_large">85sp</dimen>
+    <dimen name="text_size_small">15sp</dimen>
+    <dimen name="text_size_with_caption">18sp</dimen>
+    <dimen name="card_view_icon_height">60dp</dimen>
+    <dimen name="card_view_icon_width">60dp</dimen>
+    <dimen name="card_view_icon_padding">8dp</dimen>
+    <dimen name="card_view_icon_radius">12dp</dimen>
+    <dimen name="large_card_view_padding">20dp</dimen>
+    <dimen name="text_view_margin_top">10dp</dimen>
+    <dimen name="large_card_view_margin_horizontal">10dp</dimen>
+    <dimen name="large_card_view_margin_vertical">70dp</dimen>
+    <dimen name="recycler_view_margin_vertical">10dp</dimen>
+    <dimen name="margin_10dp">10dp</dimen>
+    <dimen name="margin_15dp">15dp</dimen>
+</resources>
