@@ -36,10 +36,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
-        android:drawableLeft="@drawable/ic_location"
+        android:layout_marginBottom="@dimen/margin_10dp"
         android:text="Just Updated"
         android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-        android:textSize="@dimen/text_size_small" />
+        android:textSize="@dimen/text_size_small"
+        app:drawableLeftCompat="@drawable/ic_location" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
