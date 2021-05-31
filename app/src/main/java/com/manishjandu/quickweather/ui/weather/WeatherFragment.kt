@@ -1,7 +1,7 @@
 package com.manishjandu.quickweather.ui.weather
 
- import android.annotation.SuppressLint
- import android.app.AlertDialog
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -21,6 +21,7 @@ import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
 import com.manishjandu.quickweather.utils.Constants
+import com.manishjandu.quickweather.utils.getTimeDifference
 import kotlinx.coroutines.flow.collect
 
 private const val TAG = "WeatherFragment"
@@ -31,10 +32,13 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private lateinit var binding: FragmentWeatherBinding
     private lateinit var adapter: ForecastAdapter
 
+    override fun onStart() {
+        super.onStart()
+        checkInternetAndLocationAccess()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding = FragmentWeatherBinding.bind(view)
-
-        checkInternetAndLocationAccess()
 
         adapter = ForecastAdapter()
         binding.recyclerViewWeatherForecast.adapter = adapter
@@ -84,10 +88,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        checkInternetAndLocationAccess()
-    }
 
     private fun showErrorSnackBar(
         buttonText: String? = "try again",
@@ -109,6 +109,9 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         binding.apply {
             textViewLocationName.text = weatherData.location.name
             //
+            val diff =
+                getTimeDifference(weatherData.location.localtime, weatherData.current.last_updated)
+            textViewUpdate.text = "last updated $diff min ago."
             textViewTemperature.text = "${(current.temp_c).toInt()}\u00B0"
             textViewWeatherDescription.text = current.condition.text
             textViewWindSpeed.text = "${current.wind_kph}Km/h"
@@ -168,13 +171,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             }
             shouldShowRequestPermissionRationale(Constants.COARSE_LOCATION) -> {
                 //dialog to show why we need access to location
-                Log.i(TAG, "checkAndSetPermission: First")
                 showLocationPermissionAlertDialog()
             }
 
             else -> {
                 //request permission
-                Log.i(TAG, "checkAndSetPermission: else")
                 requestPermissionLauncher.launch(Constants.COARSE_LOCATION)
             }
         }

@@ -7,30 +7,32 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun parseDateGreaterThenVersionO(date: String): LocalDateTime {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    val date = LocalDateTime.parse(date, formatter)
-    return date
-}
-
-fun parseDateLesserThenVersionO(date: String): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm")
-    return sdf.format(date)
-}
-
-
 //@RequiresApi(Build.VERSION_CODES.O)
-//fun getDifference(localTime: String, LastUpdated: String): Int {
-//    val local = parseDateGreaterThenVersionO(localTime)
-//    val updated = parseDateGreaterThenVersionO(LastUpdated)
-//    return local.minute.minus(updated.minute)
+//fun parseDateGreaterThenVersionO(date: String): LocalDateTime {
+//    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+//    return LocalDateTime.parse(date, formatter)
 //}
 
-fun getLocalTime() {
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-          parseDateGreaterThenVersionO(Date().toString())
-    }else{
-        parseDateLesserThenVersionO(Date().toString())
-    }
+fun parseDateLesserThenVersionO(date: String): Date {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+    return dateFormat.parse(date)
+}
+
+//fun getDifference(localTime: String, lastUpdated: String): Int {
+//    return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+//        val local = parseDateGreaterThenVersionO(localTime)
+//        val updated = parseDateGreaterThenVersionO(lastUpdated)
+//        local.minute.minus(updated.minute)
+//    } else {
+//        val local = parseDateLesserThenVersionO(localTime)
+//        val updated = parseDateLesserThenVersionO(lastUpdated)
+//        val diff = local.compareTo(updated)
+//        0
+//    }
+//}
+
+fun getTimeDifference(localTime: String, lastUpdated: String) :Int{
+    val local = parseDateLesserThenVersionO(localTime)
+    val updated = parseDateLesserThenVersionO(lastUpdated)
+    return local.compareTo(updated)
 }
