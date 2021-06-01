@@ -7,7 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
+
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -17,9 +17,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
+import com.manishjandu.quickweather.MainActivity
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
+import com.manishjandu.quickweather.ui.search.SearchFragment
 import com.manishjandu.quickweather.utils.Constants
 import com.manishjandu.quickweather.utils.getTimeDifference
 import kotlinx.coroutines.flow.collect
@@ -43,6 +45,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         adapter = ForecastAdapter()
         binding.recyclerViewWeatherForecast.adapter = adapter
         binding.recyclerViewWeatherForecast.layoutManager = LinearLayoutManager(requireContext())
+
+        binding.buttonLocation.setOnClickListener {
+            weatherViewModel.slideToSearchScreen()
+        }
 
         weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
             weatherData?.let {

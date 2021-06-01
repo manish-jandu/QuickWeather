@@ -20,6 +20,7 @@ import com.google.android.gms.location.LocationServices
 import com.manishjandu.WeatherApplication
 import com.manishjandu.quickweather.data.WeatherRepository
 import com.manishjandu.quickweather.data.models.WeatherData
+import com.manishjandu.quickweather.utils.slideToSearchScreenSendSignal
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -124,11 +125,15 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun slideToSearchScreen() = viewModelScope.launch{
+        slideToSearchScreenSendSignal()
+     }
+
     sealed class WeatherEvent {
         object ShowErrorMessage : WeatherEvent()
         object LocationNotEnabledError : WeatherEvent()
         object InternetNotEnabledError : WeatherEvent()
-        data class InternetAndLocationEnabled(val bothEnabled: Boolean) : WeatherEvent()
+         data class InternetAndLocationEnabled(val bothEnabled: Boolean) : WeatherEvent()
         data class LastLocation(val lastLocation: String) : WeatherEvent()
     }
 }

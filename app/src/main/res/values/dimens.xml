@@ -15,4 +15,5 @@
     <dimen name="recycler_view_margin_vertical">10dp</dimen>
     <dimen name="margin_10dp">10dp</dimen>
     <dimen name="margin_15dp">15dp</dimen>
+    <dimen name="divider_height">2dp</dimen>
 </resources>
