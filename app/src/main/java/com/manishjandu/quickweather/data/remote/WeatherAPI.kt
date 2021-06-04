@@ -1,6 +1,7 @@
 package com.manishjandu.quickweather.data.remote
 
 import com.manishjandu.quickweather.BuildConfig
+import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
 import retrofit2.Response
 import retrofit2.http.GET
@@ -20,5 +21,12 @@ interface WeatherAPI {
         query: String,
         @Query("days")
         days: Int = 3
-    ):Response<WeatherData>
+    ): Response<WeatherData>
+
+    @Headers("key:$CLIENT_ID")
+    @GET("search.json")
+    suspend fun getLocationNames(
+        @Query("q")
+        query: String
+    ): Response<List<LocationsItem>>
 }

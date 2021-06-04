@@ -1,5 +1,6 @@
 package com.manishjandu.quickweather.ui.weather
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,14 +9,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.manishjandu.quickweather.R
-import com.manishjandu.quickweather.data.models.Forecast
-import com.manishjandu.quickweather.data.models.ForecastDay
+import com.manishjandu.quickweather.data.models.Forecastday
 import com.manishjandu.quickweather.databinding.ItemWeatherForecastBinding
 
 private const val TAG = "ForecastAdapter"
 
 class ForecastAdapter :
-    ListAdapter<ForecastDay, ForecastAdapter.ForecastViewHolder>(DiffCallback()) {
+    ListAdapter<Forecastday, ForecastAdapter.ForecastViewHolder>(DiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ForecastViewHolder {
         val binding =
             ItemWeatherForecastBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -32,13 +32,14 @@ class ForecastAdapter :
         RecyclerView.ViewHolder(binding.root) {
         private val itemBinding = binding
 
-        fun bind(item: ForecastDay) {
+        @SuppressLint("SetTextI18n")
+        fun bind(item: Forecastday) {
             itemBinding.apply {
                 textViewForecastDate.text = item.date
-                textViewForecastAvgTemp.text = "${(item.day.avgtemp_c).toInt()}\u00B0"
+                textViewForecastAvgTemp.text = "${(item.day.avgtempC).toInt()}\u00B0"
                 textViewForecastDescription.text = item.day.condition.text
-                textViewForecastRainInMm.text = "${item.day.totalprecip_mm.toString()} mm"
-                textViewForecastRainPercentage.text = "${item.day.daily_chance_of_rain}%"
+                textViewForecastRainInMm.text = "${item.day.totalprecipMm.toString()} mm"
+                textViewForecastRainPercentage.text = "${item.day.dailyChanceOfRain}%"
 
                 Glide.with(itemBinding.root)
                     .load("https:${item.day.condition.icon}")
@@ -49,12 +50,12 @@ class ForecastAdapter :
         }
     }
 
-    private class DiffCallback : DiffUtil.ItemCallback<ForecastDay>() {
-        override fun areItemsTheSame(oldItem: ForecastDay, newItem: ForecastDay): Boolean {
+    private class DiffCallback : DiffUtil.ItemCallback<Forecastday>() {
+        override fun areItemsTheSame(oldItem: Forecastday, newItem: Forecastday): Boolean {
             return oldItem == newItem
         }
 
-        override fun areContentsTheSame(oldItem: ForecastDay, newItem: ForecastDay): Boolean {
+        override fun areContentsTheSame(oldItem: Forecastday, newItem: Forecastday): Boolean {
             return oldItem.date == newItem.date
         }
     }

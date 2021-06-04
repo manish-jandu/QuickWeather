@@ -1,11 +1,15 @@
 package com.manishjandu.quickweather.data.models
 
-import com.manishjandu.quickweather.data.models.Current
-import com.manishjandu.quickweather.data.models.Forecast
-import com.manishjandu.quickweather.data.models.Location
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class WeatherData(
+    @Json(name = "current")
     val current: Current,
-    val location: Location,
-    val forecast: Forecast
+    @Json(name = "forecast")
+    val forecast: Forecast,
+    @Json(name = "location")
+    val location: Location
 )

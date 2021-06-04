@@ -1,33 +1,65 @@
 package com.manishjandu.quickweather.data.models
 
+
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class Current(
+    @Json(name = "cloud")
     val cloud: Int,
+    @Json(name = "condition")
     val condition: Condition,
-    val feelslike_c: Double,
-    val feelslike_f: Double,
-    val gust_kph: Double,
-    val gust_mph: Double,
+    @Json(name = "feelslike_c")
+    val feelslikeC: Double,
+    @Json(name = "feelslike_f")
+    val feelslikeF: Double,
+    @Json(name = "gust_kph")
+    val gustKph: Double,
+    @Json(name = "gust_mph")
+    val gustMph: Double,
+    @Json(name = "humidity")
     val humidity: Int,
-    val is_day: Int,
-    val last_updated: String,
-    val last_updated_epoch: Int,
-    val precip_in: Double,
-    val precip_mm: Double,
-    val pressure_in: Double,
-    val pressure_mb: Double,
-    val temp_c: Double,
-    val temp_f: Double,
+    @Json(name = "is_day")
+    val isDay: Int,
+    @Json(name = "last_updated")
+    val lastUpdated: String,
+    @Json(name = "last_updated_epoch")
+    val lastUpdatedEpoch: Int,
+    @Json(name = "precip_in")
+    val precipIn: Double,
+    @Json(name = "precip_mm")
+    val precipMm: Double,
+    @Json(name = "pressure_in")
+    val pressureIn: Double,
+    @Json(name = "pressure_mb")
+    val pressureMb: Double,
+    @Json(name = "temp_c")
+    val tempC: Double,
+    @Json(name = "temp_f")
+    val tempF: Double,
+    @Json(name = "uv")
     val uv: Double,
-    val vis_km: Double,
-    val vis_miles: Double,
-    val wind_degree: Int,
-    val wind_dir: String,
-    val wind_kph: Double,
-    val wind_mph: Double
+    @Json(name = "vis_km")
+    val visKm: Double,
+    @Json(name = "vis_miles")
+    val visMiles: Double,
+    @Json(name = "wind_degree")
+    val windDegree: Int,
+    @Json(name = "wind_dir")
+    val windDir: String,
+    @Json(name = "wind_kph")
+    val windKph: Double,
+    @Json(name = "wind_mph")
+    val windMph: Double
 ){
+    @JsonClass(generateAdapter = true)
     data class Condition(
+        @Json(name = "code")
         val code: Int,
+        @Json(name = "icon")
         val icon: String,
+        @Json(name = "text")
         val text: String
     )
 }

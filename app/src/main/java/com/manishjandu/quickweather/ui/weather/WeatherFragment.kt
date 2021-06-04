@@ -17,11 +17,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
-import com.manishjandu.quickweather.MainActivity
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
-import com.manishjandu.quickweather.ui.search.SearchFragment
 import com.manishjandu.quickweather.utils.Constants
 import com.manishjandu.quickweather.utils.getTimeDifference
 import kotlinx.coroutines.flow.collect
@@ -116,16 +114,16 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             textViewLocationName.text = weatherData.location.name
             //
             val diff =
-                getTimeDifference(weatherData.location.localtime, weatherData.current.last_updated)
+                getTimeDifference(weatherData.location.localtime, weatherData.current.lastUpdated)
             textViewUpdate.text = "last updated $diff min ago."
-            textViewTemperature.text = "${(current.temp_c).toInt()}\u00B0"
+            textViewTemperature.text = "${(current.tempC).toInt()}\u00B0"
             textViewWeatherDescription.text = current.condition.text
-            textViewWindSpeed.text = "${current.wind_kph}Km/h"
+            textViewWindSpeed.text = "${current.windKph}Km/h"
             textViewRainPercentage.text =
-                "${weatherData.forecast.forecastday[0].day.daily_chance_of_rain}%"
+                "${weatherData.forecast.forecastday[0].day.dailyChanceOfRain}%"
             textViewRainInMm.text =
-                "${current.precip_mm} mm"
-            textViewFeelsLike.text = current.feelslike_c.toString()
+                "${current.precipMm} mm"
+            textViewFeelsLike.text = current.feelslikeC.toString()
             textViewUvIndex.text = current.uv.toString()
 
             adapter.submitList(weatherData.forecast.forecastday)

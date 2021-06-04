@@ -26,7 +26,7 @@
         android:layout_height="@dimen/card_view_icon_height"
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/margin_10dp"
-        android:src="@drawable/ic_snow_black_24dp" />
+        android:src="@drawable/sun" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_view_forecast_description"
