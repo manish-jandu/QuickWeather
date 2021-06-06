@@ -23,7 +23,6 @@ class ForecastAdapter :
     }
 
     override fun onBindViewHolder(holder: ForecastViewHolder, position: Int) {
-        Log.i(TAG, "onBindViewHolder: in the bind view holder")
         val item = getItem(position)
         holder.bind(item)
     }

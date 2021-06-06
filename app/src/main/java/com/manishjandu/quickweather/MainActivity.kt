@@ -35,6 +35,9 @@ class MainActivity : FragmentActivity() {
                     UtilsEvent.SlideToSearchScreen -> {
                         viewPager2.currentItem = positionSearchFragment
                     }
+                    UtilsEvent.SlideToWeatherScreen ->{
+                        viewPager2.currentItem = positionWeatherFragment
+                    }
                 }
             }
         }

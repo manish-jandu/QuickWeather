@@ -21,7 +21,9 @@ import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
 import com.manishjandu.quickweather.utils.Constants
+import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.getTimeDifference
+import com.manishjandu.quickweather.utils.utilEvent
 import kotlinx.coroutines.flow.collect
 
 private const val TAG = "WeatherFragment"
@@ -90,6 +92,16 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             }
         }
 
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            utilEvent.collect { event ->
+                when (event) {
+                    is UtilsEvent.NewWeatherLocation -> {
+                        weatherViewModel.getWeatherData(event.newLocation)
+                    }
+
+                }
+            }
+        }
     }
 
 

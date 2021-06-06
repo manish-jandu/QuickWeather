@@ -1,27 +1,46 @@
 package com.manishjandu.quickweather.ui.search
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.manishjandu.quickweather.data.WeatherRepository
+import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.ui.weather.WeatherViewModel
+import com.manishjandu.quickweather.utils.setNewWeatherLocation
+import com.manishjandu.quickweather.utils.slideToWeatherScreenSendSignal
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-class SearchViewModel:ViewModel() {
-    private var _weatherData = MutableLiveData<WeatherData>()
-    val weatherData: LiveData<WeatherData> = _weatherData
+private const val TAG = "SearchViewModel"
 
-    val repo = WeatherRepository()
+class SearchViewModel : ViewModel() {
+    private var _locations = MutableLiveData<List<LocationsItem>>()
+    val locations: LiveData<List<LocationsItem>> = _locations
 
+    private val searchEventChannel = Channel<SearchEvent>()
+    val searchEvent = searchEventChannel.receiveAsFlow()
 
-    fun getWeatherData(location: String) = viewModelScope.launch {
-        val result = repo.getWeatherFromRemote(location)
-         if (result != null) {
-            _weatherData.value = result
+    private val repo = WeatherRepository()
+
+    fun getLocations(query: String) = viewModelScope.launch {
+        val result = repo.getLocationsNames(query)
+        if (result != null && result.isNotEmpty()) {
+            _locations.value = result
         } else {
-           // weatherEventChannel.send(WeatherViewModel.WeatherEvent.ShowErrorMessage)
+            searchEventChannel.send(SearchEvent.LocationNotFound)
         }
+    }
+
+    fun setNewLocationAndSlide(newLocation: String) = viewModelScope.launch{
+        slideToWeatherScreenSendSignal()
+        setNewWeatherLocation(newLocation)
+    }
+
+    sealed class SearchEvent {
+        object LocationNotFound : SearchEvent()
     }
 }

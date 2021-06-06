@@ -11,20 +11,30 @@
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:defaultQueryHint="Search Location"
-        app:queryHint="Search Location"
         android:layout_margin="@dimen/margin_10dp"
         android:background="@color/white"
-        android:elevation="10dp"  />
+        android:elevation="10dp"
+        app:defaultQueryHint="Search Location"
+        app:iconifiedByDefault="false"
+        app:queryHint="Search Location" />
 
-    <FrameLayout
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_cities_suggestion"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_cities_weather_forecast"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+    <!--
+<FrameLayout
+   android:id="@+id/layout_bottom_fragment_search"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:visibility="gone">
+
+       <androidx.recyclerview.widget.RecyclerView
+           android:id="@+id/recycler_view_cities_weather_forecast"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
 
 
         <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -33,12 +43,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
             android:layout_marginBottom="@dimen/margin_40dp"
-            android:gravity="center"
-            android:text="Add City"
             android:elevation="10dp"
-            android:visibility="visible"
-            android:padding="5dp" />
-
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="Add City" />
     </FrameLayout>
+
+-->
+
 
 </LinearLayout>

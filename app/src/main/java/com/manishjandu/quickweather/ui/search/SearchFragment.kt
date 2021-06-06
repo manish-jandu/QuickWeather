@@ -2,56 +2,86 @@ package com.manishjandu.quickweather.ui.search
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.SearchView
-import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
-import androidx.core.widget.doOnTextChanged
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.databinding.FragmentSearchBinding
+import com.manishjandu.quickweather.utils.setNewWeatherLocation
+import kotlinx.coroutines.flow.collect
 
 private const val TAG = "SearchFragment"
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var binding: FragmentSearchBinding
+    private lateinit var suggestionAdapter: SuggestionsAdapter
+    private lateinit var searchView: SearchView
+    private val searchViewModel: SearchViewModel by viewModels()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentSearchBinding.inflate(inflater)
 
-        val searchView = binding.searchView
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding = FragmentSearchBinding.bind(view)
+        suggestionAdapter = SuggestionsAdapter(SuggestionClick())
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
-            androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        searchView = binding.searchView
+        val recyclerViewCitiesSuggestion = binding.recyclerViewCitiesSuggestion
+
+        recyclerViewCitiesSuggestion.adapter = suggestionAdapter
+        recyclerViewCitiesSuggestion.layoutManager = LinearLayoutManager(requireContext())
+        recyclerViewCitiesSuggestion.visibility = View.GONE
+
+        Log.i(TAG, "getSuggestions: this is in main function")
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                searchView.clearFocus()
-                Log.i(TAG, "onQueryTextSubmit: $query")
-
+                if (query != null) {
+                    searchViewModel.getLocations(query)
+                }
                 return false
             }
 
-            override fun onQueryTextChange(query: String?): Boolean {
-
-                Log.i(TAG, "onQueryTextChange: $query")
-
+            override fun onQueryTextChange(newQuery: String?): Boolean {
+                if (newQuery.isNullOrEmpty()) {
+                    recyclerViewCitiesSuggestion.visibility = View.GONE
+                    suggestionAdapter.submitList(null)
+                }
                 return false
             }
-
         })
 
 
+        searchViewModel.locations.observe(viewLifecycleOwner) {
+            it?.let {
+                recyclerViewCitiesSuggestion.visibility = View.VISIBLE
+                suggestionAdapter.submitList(it)
+            }
+        }
 
-
-        return super.onCreateView(inflater, container, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            searchViewModel.searchEvent.collect { event ->
+                when (event) {
+                    is SearchViewModel.SearchEvent.LocationNotFound -> {
+                        Snackbar.make(requireView(), "Location not Found", Snackbar.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            }
+        }
     }
 
+    inner class SuggestionClick : SuggestionsAdapter.OnClick {
+        override fun onClicked(newLocation:String) {
+            suggestionAdapter.submitList(null)
+            searchView.clearFocus()
+            searchView.setQuery("",false)
+            searchViewModel.setNewLocationAndSlide(newLocation)
+        }
+    }
 }
 
 
