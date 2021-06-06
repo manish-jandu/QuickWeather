@@ -98,7 +98,9 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                     is UtilsEvent.NewWeatherLocation -> {
                         weatherViewModel.getWeatherData(event.newLocation)
                     }
-
+                    is UtilsEvent.CurrentWeatherLocation -> {
+                        weatherViewModel.getLastLocation()
+                    }
                 }
             }
         }

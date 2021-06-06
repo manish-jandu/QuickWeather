@@ -21,21 +21,14 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_cities_suggestion"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!--
-<FrameLayout
-   android:id="@+id/layout_bottom_fragment_search"
-   android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:visibility="gone">
 
-       <androidx.recyclerview.widget.RecyclerView
-           android:id="@+id/recycler_view_cities_weather_forecast"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"/>
-
+    <FrameLayout
+        android:id="@+id/layout_bottom_fragment_search"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/floating_button_add_location"
@@ -46,10 +39,8 @@
             android:elevation="10dp"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Add City" />
+            android:text="Current Location" />
     </FrameLayout>
-
--->
 
 
 </LinearLayout>

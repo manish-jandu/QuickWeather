@@ -9,6 +9,7 @@ import com.manishjandu.quickweather.data.WeatherRepository
 import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.ui.weather.WeatherViewModel
+import com.manishjandu.quickweather.utils.setCurrentWeatherLocation
 import com.manishjandu.quickweather.utils.setNewWeatherLocation
 import com.manishjandu.quickweather.utils.slideToWeatherScreenSendSignal
 import kotlinx.coroutines.channels.Channel
@@ -38,6 +39,11 @@ class SearchViewModel : ViewModel() {
     fun setNewLocationAndSlide(newLocation: String) = viewModelScope.launch{
         slideToWeatherScreenSendSignal()
         setNewWeatherLocation(newLocation)
+    }
+
+    fun getCurrentLocation() =viewModelScope.launch{
+        slideToWeatherScreenSendSignal()
+        setCurrentWeatherLocation()
     }
 
     sealed class SearchEvent {

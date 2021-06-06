@@ -2,8 +2,11 @@ package com.manishjandu.quickweather.ui.search
 
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.widget.SearchView
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -35,7 +38,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         recyclerViewCitiesSuggestion.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewCitiesSuggestion.visibility = View.GONE
 
-        Log.i(TAG, "getSuggestions: this is in main function")
+        binding.floatingButtonAddLocation.setOnClickListener {
+            getCurrentLocation()
+        }
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -75,12 +80,16 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     }
 
     inner class SuggestionClick : SuggestionsAdapter.OnClick {
-        override fun onClicked(newLocation:String) {
+        override fun onClicked(newLocation: String) {
             suggestionAdapter.submitList(null)
             searchView.clearFocus()
-            searchView.setQuery("",false)
+            searchView.setQuery("", false)
             searchViewModel.setNewLocationAndSlide(newLocation)
         }
+    }
+
+    private fun getCurrentLocation(){
+        searchViewModel.getCurrentLocation()
     }
 }
 

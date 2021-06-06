@@ -25,6 +25,7 @@ val utilEvent = UtilsEventChannel.receiveAsFlow()
 suspend fun slideToSearchScreenSendSignal() {
     UtilsEventChannel.send(UtilsEvent.SlideToSearchScreen)
 }
+
 suspend fun slideToWeatherScreenSendSignal() {
     UtilsEventChannel.send(UtilsEvent.SlideToWeatherScreen)
 }
@@ -33,8 +34,13 @@ suspend fun setNewWeatherLocation(location: String) {
     UtilsEventChannel.send(UtilsEvent.NewWeatherLocation(location))
 }
 
+suspend fun setCurrentWeatherLocation() {
+    UtilsEventChannel.send(UtilsEvent.CurrentWeatherLocation)
+}
+
 sealed class UtilsEvent {
     object SlideToSearchScreen : UtilsEvent()
     object SlideToWeatherScreen : UtilsEvent()
+    object CurrentWeatherLocation : UtilsEvent()
     data class NewWeatherLocation(val newLocation: String) : UtilsEvent()
 }
