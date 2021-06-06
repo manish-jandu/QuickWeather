@@ -52,6 +52,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
             weatherData?.let {
+                //Todo:save last location in room
                 setupWeatherDataInView(weatherData)
             }
         }
@@ -173,6 +174,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         registerForActivityResult(ActivityResultContracts.RequestPermission())
         { isGranted: Boolean ->
             if (isGranted) {
+                //Todo:check city in room
                 weatherViewModel.getLastLocation()
             } else {
                 //Todo:check city in room

@@ -1,3 +1,31 @@
 <resources>
     <string name="app_name">Quick Weather</string>
+    <string name="default_location">London</string>
+    <string name="last_updated">Just Updated</string>
+    <string name="image_current_weather">Current Weather Image</string>
+    <string name="button_to_slide_to_search_screen">Button to slide to search screen</string>
+    <string name="default_current_temperature">37°</string>
+    <string name="default_current_temperature_description">It\'s Sunny</string>
+    <string name="image_current_wind_speed">current wind speed</string>
+    <string name="default_current_wind_speed_in_km">5.4 Km/h</string>
+    <string name="image_current_rain_percentage">image current rain</string>
+    <string name="default_current_rain_percentage">70%</string>
+    <string name="image_current_rain">image current rain</string>
+    <string name="default_current_rain_in_mm">5 mm</string>
+    <string name="comfort_level">Comfort Level</string>
+    <string name="image_humidity">image humidity</string>
+    <string name="feels_like">Feels Like</string>
+    <string name="default_feels_like">30</string>
+    <string name="uv_index">UV index</string>
+    <string name="default_uv_index">0</string>
+    <string name="next_days">Next Days</string>
+    <string name="current_location">Current Location</string>
+    <string name="divider">divider</string>
+    <string name="default_current_date">June 2,2021</string>
+    <string name="avg_temp">Avg. Temp </string>
+    <string name="default_avg_temp">30°</string>
+    <string name="rain">Rain </string>
+    <string name="rain_in_mm">Rain in mm </string>
+    <string name="humidity">Humidity </string>
+    <string name="default_humidity_percentage">12%</string>
 </resources>

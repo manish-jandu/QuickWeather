@@ -39,7 +39,7 @@
             android:elevation="10dp"
             android:gravity="center"
             android:padding="5dp"
-            android:text="Current Location" />
+            android:text="@string/current_location" />
     </FrameLayout>
 
 
