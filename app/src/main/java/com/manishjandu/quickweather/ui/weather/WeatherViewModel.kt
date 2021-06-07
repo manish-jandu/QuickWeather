@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
 import com.manishjandu.WeatherApplication
 import com.manishjandu.quickweather.data.WeatherRepository
+import com.manishjandu.quickweather.data.local.LocationDatabase
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.utils.slideToSearchScreenSendSignal
 import kotlinx.coroutines.channels.Channel
@@ -34,11 +35,13 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val weatherEventChannel = Channel<WeatherEvent>()
     val weatherEvent = weatherEventChannel.receiveAsFlow()
 
+    private val dao = LocationDatabase.getDatabase(app.applicationContext).locationDao()
+
     val mFusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(app.applicationContext)
 
 
-    val repo = WeatherRepository()
+    val repo = WeatherRepository(dao)
 
     fun hasInternetAndLocationEnabled() = viewModelScope.launch {
         val internetEnabled = checkInternetEnabled()
@@ -122,15 +125,25 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun slideToSearchScreen() = viewModelScope.launch{
+    fun slideToSearchScreen() = viewModelScope.launch {
         slideToSearchScreenSendSignal()
-     }
+    }
+
+    fun setLocationDataInRoom(newLocation: String) = viewModelScope.launch  {
+        repo.setLocationDataLocally(newLocation)
+    }
+
+    fun getLocationDataFromRoom() = viewModelScope.launch {
+        val result = repo.getLocationDataLocally()
+        weatherEventChannel.send(WeatherEvent.LocaleLocation(result.location))
+    }
 
     sealed class WeatherEvent {
         object ShowErrorMessage : WeatherEvent()
         object LocationNotEnabledError : WeatherEvent()
         object InternetNotEnabledError : WeatherEvent()
-         data class InternetAndLocationEnabled(val bothEnabled: Boolean) : WeatherEvent()
+        data class InternetAndLocationEnabled(val bothEnabled: Boolean) : WeatherEvent()
         data class LastLocation(val lastLocation: String) : WeatherEvent()
+        data class LocaleLocation(val location: String) : WeatherEvent()
     }
 }

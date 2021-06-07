@@ -52,7 +52,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
             weatherData?.let {
-                //Todo:save last location in room
                 setupWeatherDataInView(weatherData)
             }
         }
@@ -87,7 +86,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                         }
                     }
                     is WeatherViewModel.WeatherEvent.LastLocation -> {
-                        weatherViewModel.getWeatherData(lastLocation = event.lastLocation)
+                        setLocationLocaleAndGetData(event.lastLocation)
+                    }
+                    is WeatherViewModel.WeatherEvent.LocaleLocation -> {
+                        if (event.location == "hello") {
+                            weatherViewModel.getLastLocation()
+                        } else {
+                            weatherViewModel.getWeatherData(event.location)
+                        }
                     }
                 }
             }
@@ -97,7 +103,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             utilEvent.collect { event ->
                 when (event) {
                     is UtilsEvent.NewWeatherLocation -> {
-                        weatherViewModel.getWeatherData(event.newLocation)
+                        setLocationLocaleAndGetData(event.newLocation)
                     }
                     is UtilsEvent.CurrentWeatherLocation -> {
                         weatherViewModel.getLastLocation()
@@ -105,6 +111,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 }
             }
         }
+    }
+
+    private fun setLocationLocaleAndGetData(newLocation: String) {
+        weatherViewModel.setLocationDataInRoom(newLocation)
+        weatherViewModel.getWeatherData(newLocation)
     }
 
 
@@ -170,14 +181,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             .show()
     }
 
-    val requestPermissionLauncher =
+    private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission())
         { isGranted: Boolean ->
             if (isGranted) {
                 //Todo:check city in room
-                weatherViewModel.getLastLocation()
+                weatherViewModel.getLocationDataFromRoom()
             } else {
-                //Todo:check city in room
+                weatherViewModel.slideToSearchScreen()
             }
         }
 
@@ -187,7 +198,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 requireContext(),
                 Constants.COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                weatherViewModel.getLastLocation()
+                weatherViewModel.getLocationDataFromRoom()
             }
             shouldShowRequestPermissionRationale(Constants.COARSE_LOCATION) -> {
                 //dialog to show why we need access to location

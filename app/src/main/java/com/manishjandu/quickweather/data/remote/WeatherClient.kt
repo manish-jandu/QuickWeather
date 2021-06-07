@@ -1,8 +1,7 @@
 package com.manishjandu.quickweather.data.remote
 
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
+ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object WeatherClient {
     private val retrofit by lazy {
