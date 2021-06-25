@@ -5,6 +5,7 @@ package com.manishjandu.quickweather.data.local
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+ import com.manishjandu.quickweather.R
 
 @Database(entities = [LocationInLongLat::class], version = 1, exportSchema = false)
 abstract class LocationDatabase : RoomDatabase() {
@@ -24,7 +25,7 @@ abstract class LocationDatabase : RoomDatabase() {
             }
         }
 
-        private fun createInstance(context: Context): LocationDatabase? {
+        private fun createInstance(context: Context): LocationDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 LocationDatabase::class.java,
@@ -45,7 +46,7 @@ abstract class LocationDatabase : RoomDatabase() {
         }
 
         private fun prePopulateDatabase(context: Context, database: LocationDatabase) {
-            val location = LocationInLongLat("hello")
+            val location = LocationInLongLat(context.getString(R.string.firstTimeLocation))
             database.locationDao().setFirstTimeLocation(location)
 
         }

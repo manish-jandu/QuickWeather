@@ -2,25 +2,29 @@ package com.manishjandu.quickweather.ui.weather
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.afollestad.assent.GrantResult
+import com.afollestad.assent.Permission
+import com.afollestad.assent.askForPermissions
+import com.afollestad.assent.isAllGranted
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
-import com.manishjandu.quickweather.utils.Constants
 import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.getTimeDifference
 import com.manishjandu.quickweather.utils.utilEvent
@@ -60,41 +64,26 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             weatherViewModel.weatherEvent.collect { event ->
                 when (event) {
                     is WeatherViewModel.WeatherEvent.ShowErrorMessage -> {
-                        showErrorSnackBar(
-                            error = "Couldn't load,please try again"
-                        ) {
+                        Snackbar.make(
+                            requireView(),
+                            "Couldn't load,please try again",
+                            Snackbar.LENGTH_LONG
+                        ).setAction("try again") {
                             weatherViewModel.getLastLocation()
-                        }
-                    }
-                    WeatherViewModel.WeatherEvent.InternetNotEnabledError -> {
-                        showErrorSnackBar(
-                            error = "Enable Mobile Data and try again"
-                        ) { checkInternetAndLocationAccess() }
-                    }
-                    WeatherViewModel.WeatherEvent.LocationNotEnabledError -> {
-                        showErrorSnackBar(
-                            buttonText = "Settings",
-                            error = "Enable Location services"
-                        ) {
-                            moveToLocationSettings()
-                            //todo:checkInternetAndLocationAccess()
-                        }
-                    }
-                    is WeatherViewModel.WeatherEvent.InternetAndLocationEnabled -> {
-                        if (event.bothEnabled) {
-                            checkAndSetPermission()
-                        }
+                        }.setActionTextColor(Color.RED)
+                            .show()
                     }
                     is WeatherViewModel.WeatherEvent.LastLocation -> {
                         setLocationLocaleAndGetData(event.lastLocation)
                     }
                     is WeatherViewModel.WeatherEvent.LocaleLocation -> {
-                        if (event.location == "hello") {
+                        if (event.location == requireContext().getString(R.string.firstTimeLocation)) {
                             weatherViewModel.getLastLocation()
                         } else {
                             weatherViewModel.getWeatherData(event.location)
                         }
                     }
+
                 }
             }
         }
@@ -169,46 +158,116 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     private fun checkInternetAndLocationAccess() {
-        weatherViewModel.hasInternetAndLocationEnabled()
+        val internetEnabled = checkInternetEnabled()
+        val locationEnabled = checkLocationEnabled()
+
+        if (internetEnabled && locationEnabled) {
+            checkAndSetPermission()
+
+        } else if (!internetEnabled) {
+            showErrorSnackBar(error = "Enable Mobile Data and try again") {
+                checkInternetAndLocationAccess()
+            }
+
+        } else if (!locationEnabled) {
+            showErrorSnackBar(buttonText = "Settings", error = "Enable Location services") {
+                moveToLocationSettings()
+                //todo:checkInternetAndLocationAccess()
+            }
+        }
     }
 
-    private fun showLocationPermissionAlertDialog() {
+    private fun checkInternetEnabled(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val activeNetwork = connectivityManager.activeNetwork ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            return when {
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+                else -> false
+            }
+        } else {
+            connectivityManager.activeNetworkInfo?.run {
+                return when (type) {
+                    ConnectivityManager.TYPE_WIFI -> true
+                    ConnectivityManager.TYPE_MOBILE -> true
+                    ConnectivityManager.TYPE_ETHERNET -> true
+                    else -> false
+                }
+            }
+        }
+        return false
+    }
+
+    private fun checkLocationEnabled(): Boolean {
+        val locationManager =
+            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var gps_enabled = false
+        try {
+            gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return gps_enabled
+    }
+
+
+    private fun showLocationPermissionAlertDialog(
+        message: String,
+        actionTitle: String,
+        action: () -> Unit
+    ) {
         AlertDialog.Builder(requireContext())
-            .setMessage("Location Service is required for this app to work properly")
-            .setPositiveButton("Allow") { _, _ ->
-                requestPermissionLauncher.launch(Constants.COARSE_LOCATION)
+            .setMessage(message)
+            .setPositiveButton(actionTitle) { _, _ ->
+                action()
             }.setNegativeButton("Cancel", null)
             .show()
     }
 
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission())
-        { isGranted: Boolean ->
-            if (isGranted) {
-                //Todo:check city in room
-                weatherViewModel.getLocationDataFromRoom()
-            } else {
-                weatherViewModel.slideToSearchScreen()
-            }
-        }
-
     private fun checkAndSetPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Constants.COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                weatherViewModel.getLocationDataFromRoom()
-            }
-            shouldShowRequestPermissionRationale(Constants.COARSE_LOCATION) -> {
-                //dialog to show why we need access to location
-                showLocationPermissionAlertDialog()
-            }
-
-            else -> {
-                //request permission
-                requestPermissionLauncher.launch(Constants.COARSE_LOCATION)
-            }
+        if (!checkPermission()) {
+            setPermissions()
+        } else {
+            weatherViewModel.getLocationDataFromRoom()
         }
     }
+
+    private fun checkPermission(): Boolean {
+        return isAllGranted(Permission.ACCESS_COARSE_LOCATION)
+    }
+
+    private fun setPermissions() {
+
+        askForPermissions(
+            Permission.ACCESS_COARSE_LOCATION
+        ) { result ->
+
+            if (result.isAllGranted()) {
+                weatherViewModel.getLocationDataFromRoom()
+            }
+
+            if (result[Permission.ACCESS_COARSE_LOCATION] == GrantResult.DENIED
+            ) {
+                showLocationPermissionAlertDialog(
+                    "Location Service is required for this app to work properly",
+                    "Allow"
+                ) {
+                    setPermissions()
+                }
+            }
+
+            if (result[Permission.ACCESS_COARSE_LOCATION] == GrantResult.PERMANENTLY_DENIED
+            ) {
+                weatherViewModel.slideToSearchScreen()
+            }
+
+        }
+    }
+
+
 }

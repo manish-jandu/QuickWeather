@@ -28,4 +28,5 @@
     <string name="rain_in_mm">Rain in mm </string>
     <string name="humidity">Humidity </string>
     <string name="default_humidity_percentage">12%</string>
+    <string name="firstTimeLocation">firstLocation</string>
 </resources>
