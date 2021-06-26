@@ -11,7 +11,7 @@ object WeatherClient {
             .build()
     }
 
-    val api by lazy {
+    val api: WeatherAPI by lazy {
         retrofit.create(WeatherAPI::class.java)
     }
 

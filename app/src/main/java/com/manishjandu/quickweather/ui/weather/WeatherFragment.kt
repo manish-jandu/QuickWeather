@@ -28,10 +28,12 @@ import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
 import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.getTimeDifference
 import com.manishjandu.quickweather.utils.utilEvent
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 
 private const val TAG = "WeatherFragment"
 
+@AndroidEntryPoint
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     private val weatherViewModel: WeatherViewModel by viewModels()
@@ -172,7 +174,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         } else if (!locationEnabled) {
             showErrorSnackBar(buttonText = "Settings", error = "Enable Location services") {
                 moveToLocationSettings()
-                //todo:checkInternetAndLocationAccess()
             }
         }
     }

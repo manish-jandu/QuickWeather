@@ -1,26 +1,32 @@
 package com.manishjandu.quickweather.ui.weather
 
 import android.annotation.SuppressLint
-import android.app.Application
+import android.content.Context
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.manishjandu.quickweather.data.WeatherRepository
-import com.manishjandu.quickweather.data.local.LocationDatabase
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.utils.slideToSearchScreenSendSignal
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 private const val TAG = "WeatherViewModel"
 
-class WeatherViewModel(app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class WeatherViewModel @Inject constructor(
+    private val repo: WeatherRepository,
+    @ApplicationContext context: Context
+    ):ViewModel() {
 
 
     private var _weatherData = MutableLiveData<WeatherData>()
@@ -29,13 +35,8 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val weatherEventChannel = Channel<WeatherEvent>()
     val weatherEvent = weatherEventChannel.receiveAsFlow()
 
-    private val dao = LocationDatabase.getDatabase(app.applicationContext).locationDao()
-
     private val mFusedLocationProviderClient: FusedLocationProviderClient =
-        LocationServices.getFusedLocationProviderClient(app.applicationContext)
-
-
-    val repo = WeatherRepository(dao)
+        LocationServices.getFusedLocationProviderClient(context)
 
     @SuppressLint("MissingPermission")
     fun getLastLocation() {

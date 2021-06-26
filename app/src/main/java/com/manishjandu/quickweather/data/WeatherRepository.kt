@@ -1,17 +1,19 @@
 package com.manishjandu.quickweather.data
 
 
- import com.manishjandu.quickweather.data.local.LocationDao
+import com.manishjandu.quickweather.data.local.LocationDao
 import com.manishjandu.quickweather.data.local.LocationInLongLat
- import com.manishjandu.quickweather.data.models.LocationsItem
+import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
-import com.manishjandu.quickweather.data.remote.WeatherClient
+import com.manishjandu.quickweather.data.remote.WeatherAPI
+import javax.inject.Inject
 
 private const val TAG = "WeatherRepository"
 
-class WeatherRepository(private val dao: LocationDao) {
-    private val api = WeatherClient.api
-
+class WeatherRepository @Inject constructor(
+    private val dao: LocationDao,
+    private val api: WeatherAPI
+) {
 
     suspend fun getWeatherFromRemote(lastLocation: String): WeatherData? {
         val result = api.getWeather(lastLocation)
@@ -29,12 +31,12 @@ class WeatherRepository(private val dao: LocationDao) {
         return result.body()
     }
 
-   suspend fun setLocationDataLocally(newLocation: String ) {
+    suspend fun setLocationDataLocally(newLocation: String) {
         val new = LocationInLongLat(newLocation)
         dao.setLocation(newLocationInLongLat = new)
     }
 
-     suspend fun getLocationDataLocally( ): LocationInLongLat {
+    suspend fun getLocationDataLocally(): LocationInLongLat {
         return dao.getLocation()
     }
 }
