@@ -18,14 +18,15 @@ private const val TAG = "SearchFragment"
 @AndroidEntryPoint
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
-    private lateinit var binding: FragmentSearchBinding
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
     private lateinit var suggestionAdapter: SuggestionsAdapter
     private lateinit var searchView: SearchView
     private val searchViewModel: SearchViewModel by viewModels()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding = FragmentSearchBinding.bind(view)
+        _binding = FragmentSearchBinding.bind(view)
         suggestionAdapter = SuggestionsAdapter(SuggestionClick())
 
         searchView = binding.searchView
@@ -85,8 +86,13 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         }
     }
 
-    private fun getCurrentLocation(){
+    private fun getCurrentLocation() {
         searchViewModel.getCurrentLocation()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
 

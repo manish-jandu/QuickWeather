@@ -21,11 +21,12 @@ import kotlinx.coroutines.flow.collect
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     lateinit var viewPager2: ViewPager2
-    private lateinit var binding: ActivityMainBinding
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
 
-     override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         viewPager2 = binding.viewPager
@@ -37,7 +38,7 @@ class MainActivity : FragmentActivity() {
                     UtilsEvent.SlideToSearchScreen -> {
                         viewPager2.currentItem = positionSearchFragment
                     }
-                    UtilsEvent.SlideToWeatherScreen ->{
+                    UtilsEvent.SlideToWeatherScreen -> {
                         viewPager2.currentItem = positionWeatherFragment
                     }
                 }
@@ -66,6 +67,10 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }
 
 

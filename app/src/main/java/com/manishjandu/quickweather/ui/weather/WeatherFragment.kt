@@ -37,7 +37,8 @@ private const val TAG = "WeatherFragment"
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     private val weatherViewModel: WeatherViewModel by viewModels()
-    private lateinit var binding: FragmentWeatherBinding
+    private var _binding: FragmentWeatherBinding? = null
+    private val binding get() = _binding!!
     private lateinit var adapter: ForecastAdapter
     private lateinit var snackbar: Snackbar
 
@@ -47,7 +48,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding = FragmentWeatherBinding.bind(view)
+        _binding = FragmentWeatherBinding.bind(view)
         val swipeRefreshWeather = binding.swipeRefreshWeather
 
         snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
@@ -282,5 +283,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     override fun onStop() {
         super.onStop()
         snackbar.dismiss()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
