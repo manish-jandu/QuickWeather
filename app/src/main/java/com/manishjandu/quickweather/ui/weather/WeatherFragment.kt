@@ -39,6 +39,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private val weatherViewModel: WeatherViewModel by viewModels()
     private lateinit var binding: FragmentWeatherBinding
     private lateinit var adapter: ForecastAdapter
+    private lateinit var snackbar: Snackbar
 
     override fun onStart() {
         super.onStart()
@@ -47,6 +48,9 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding = FragmentWeatherBinding.bind(view)
+        val swipeRefreshWeather = binding.swipeRefreshWeather
+
+        snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
 
         adapter = ForecastAdapter()
         binding.recyclerViewWeatherForecast.adapter = adapter
@@ -54,6 +58,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         binding.buttonLocation.setOnClickListener {
             weatherViewModel.slideToSearchScreen()
+        }
+
+        swipeRefreshWeather.setOnRefreshListener {
+            checkInternetAndLocationAccess()
+            swipeRefreshWeather.isRefreshing = false
         }
 
         weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
@@ -66,14 +75,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             weatherViewModel.weatherEvent.collect { event ->
                 when (event) {
                     is WeatherViewModel.WeatherEvent.ShowErrorMessage -> {
-                        Snackbar.make(
+                        snackbar = Snackbar.make(
                             requireView(),
                             "Couldn't load,please try again",
                             Snackbar.LENGTH_LONG
                         ).setAction("try again") {
                             weatherViewModel.getLastLocation()
                         }.setActionTextColor(Color.RED)
-                            .show()
+                        snackbar.show()
                     }
                     is WeatherViewModel.WeatherEvent.LastLocation -> {
                         setLocationLocaleAndGetData(event.lastLocation)
@@ -115,12 +124,12 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         error: String,
         reaction: () -> Unit
     ) {
-        Snackbar.make(requireView(), error, Snackbar.LENGTH_INDEFINITE)
+        snackbar = Snackbar.make(requireView(), error, Snackbar.LENGTH_INDEFINITE)
             .setAction(buttonText) {
                 reaction()
             }
             .setActionTextColor(Color.RED)
-            .show()
+        snackbar.show()
     }
 
     @SuppressLint("SetTextI18n")
@@ -270,5 +279,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
     }
 
-
+    override fun onStop() {
+        super.onStop()
+        snackbar.dismiss()
+    }
 }
