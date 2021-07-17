@@ -7,10 +7,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.manishjandu.quickweather.databinding.ActivityMainBinding
-import com.manishjandu.quickweather.ui.base.BaseFragment
 import com.manishjandu.quickweather.ui.search.SearchFragment
 import com.manishjandu.quickweather.ui.weather.WeatherFragment
-import com.manishjandu.quickweather.utils.Constants.NUM_PAGES
 import com.manishjandu.quickweather.utils.Constants.positionSearchFragment
 import com.manishjandu.quickweather.utils.Constants.positionWeatherFragment
 import com.manishjandu.quickweather.utils.UtilsEvent
@@ -56,12 +54,12 @@ class MainActivity : FragmentActivity() {
     }
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = NUM_PAGES
+        override fun getItemCount(): Int = 2
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                positionWeatherFragment -> BaseFragment()
-                positionSearchFragment -> SearchFragment()
+                0 -> WeatherFragment()
+                1 -> SearchFragment()
                 else -> WeatherFragment()
             }
         }

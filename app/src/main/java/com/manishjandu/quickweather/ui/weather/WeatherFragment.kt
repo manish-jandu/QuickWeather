@@ -40,7 +40,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: ForecastAdapter
-    private lateinit var snackbar: Snackbar
 
     override fun onStart() {
         super.onStart()
@@ -50,8 +49,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentWeatherBinding.bind(view)
         val swipeRefreshWeather = binding.swipeRefreshWeather
-
-        snackbar = Snackbar.make(requireView(), "", Snackbar.LENGTH_SHORT)
 
         adapter = ForecastAdapter()
         binding.recyclerViewWeatherForecast.adapter = adapter
@@ -76,14 +73,13 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             weatherViewModel.weatherEvent.collect { event ->
                 when (event) {
                     is WeatherViewModel.WeatherEvent.ShowErrorMessage -> {
-                        snackbar = Snackbar.make(
+                        Snackbar.make(
                             requireView(),
                             "Couldn't load,please try again",
                             Snackbar.LENGTH_LONG
                         ).setAction("try again") {
                             weatherViewModel.getLastLocation()
-                        }.setActionTextColor(Color.RED)
-                        snackbar.show()
+                        }.setActionTextColor(Color.RED).show()
                     }
                     is WeatherViewModel.WeatherEvent.LastLocation -> {
                         setLocationLocaleAndGetData(event.lastLocation)
@@ -125,12 +121,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         error: String,
         reaction: () -> Unit
     ) {
-        snackbar = Snackbar.make(requireView(), error, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(requireView(), error, Snackbar.LENGTH_INDEFINITE)
             .setAction(buttonText) {
                 reaction()
             }
-            .setActionTextColor(Color.RED)
-        snackbar.show()
+            .setActionTextColor(Color.RED).show()
     }
 
     @SuppressLint("SetTextI18n")
@@ -282,7 +277,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     override fun onStop() {
         super.onStop()
-        snackbar.dismiss()
     }
 
     override fun onDestroyView() {
