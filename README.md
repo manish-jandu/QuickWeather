@@ -30,3 +30,8 @@ It is written 100% in Kotlin 🙂
 * Build the project and run on an android device or emulator
 
 ## Screens
+
+ <div >
+  <img src="Demo/first.gif" width="200" height="400"/>
+  <img src="Demo/second.gif" width="200" height="400"/>
+ </div>
