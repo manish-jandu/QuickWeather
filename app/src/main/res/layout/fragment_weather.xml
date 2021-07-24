@@ -82,11 +82,11 @@
 
                 <TextView
                     android:id="@+id/text_view_weather_description"
-                    android:layout_width="wrap_content"
+                    android:layout_width="100dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="64dp"
+                    android:layout_marginEnd="25dp"
                     android:ellipsize="end"
-                    android:maxLines="1"
+                    android:maxLines="2"
                     android:text="@string/default_current_temperature_description"
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption"
                     android:textSize="@dimen/text_size_small"

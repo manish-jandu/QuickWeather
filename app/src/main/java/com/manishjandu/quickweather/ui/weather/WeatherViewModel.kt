@@ -26,7 +26,7 @@ private const val TAG = "WeatherViewModel"
 class WeatherViewModel @Inject constructor(
     private val repo: WeatherRepository,
     @ApplicationContext context: Context
-    ):ViewModel() {
+) : ViewModel() {
 
 
     private var _weatherData = MutableLiveData<WeatherData>()
@@ -59,7 +59,8 @@ class WeatherViewModel @Inject constructor(
     fun getWeatherData(lastLocation: String) = viewModelScope.launch {
         val result = repo.getWeatherFromRemote(lastLocation)
         if (result != null) {
-            _weatherData.value = result
+            _weatherData.postValue(result)
+            weatherEventChannel.send(WeatherEvent.Refreshed)
         } else {
             weatherEventChannel.send(WeatherEvent.ShowErrorMessage)
         }
@@ -82,5 +83,6 @@ class WeatherViewModel @Inject constructor(
         object ShowErrorMessage : WeatherEvent()
         data class LastLocation(val lastLocation: String) : WeatherEvent()
         data class LocaleLocation(val location: String) : WeatherEvent()
+        object Refreshed:WeatherEvent()
     }
 }

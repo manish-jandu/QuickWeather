@@ -25,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
+import com.manishjandu.quickweather.ui.weather.WeatherViewModel.WeatherEvent
 import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.getTimeDifference
 import com.manishjandu.quickweather.utils.utilEvent
@@ -60,7 +61,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         swipeRefreshWeather.setOnRefreshListener {
             checkInternetAndLocationAccess()
-            swipeRefreshWeather.isRefreshing = false
         }
 
         weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
@@ -72,7 +72,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             weatherViewModel.weatherEvent.collect { event ->
                 when (event) {
-                    is WeatherViewModel.WeatherEvent.ShowErrorMessage -> {
+                    is  WeatherEvent.ShowErrorMessage -> {
                         Snackbar.make(
                             requireView(),
                             "Couldn't load,please try again",
@@ -81,17 +81,19 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                             weatherViewModel.getLastLocation()
                         }.setActionTextColor(Color.RED).show()
                     }
-                    is WeatherViewModel.WeatherEvent.LastLocation -> {
+                    is WeatherEvent.LastLocation -> {
                         setLocationLocaleAndGetData(event.lastLocation)
                     }
-                    is WeatherViewModel.WeatherEvent.LocaleLocation -> {
+                    is WeatherEvent.LocaleLocation -> {
                         if (event.location == requireContext().getString(R.string.firstTimeLocation)) {
                             weatherViewModel.getLastLocation()
                         } else {
                             weatherViewModel.getWeatherData(event.location)
                         }
                     }
-
+                    is WeatherEvent.Refreshed ->{
+                        swipeRefreshWeather.isRefreshing = false
+                    }
                 }
             }
         }
