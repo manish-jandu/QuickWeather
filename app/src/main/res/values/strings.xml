@@ -29,4 +29,6 @@
     <string name="humidity">Humidity </string>
     <string name="default_humidity_percentage">12%</string>
     <string name="firstTimeLocation">firstLocation</string>
+    <string name="powered_by_weatherapi_com">Powered by weatherapi.com</string>
+    <string name="icons_by_flaticon_com">Icons by FlatIcon.com</string>
 </resources>
