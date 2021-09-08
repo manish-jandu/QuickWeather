@@ -1,4 +1,4 @@
-package com.manishjandu.quickweather.ui.weather
+package com.manishjandu.quickweather.viewmodels
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,8 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.manishjandu.quickweather.data.WeatherRepository
+import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
+import com.manishjandu.quickweather.utils.setCurrentWeatherLocation
+import com.manishjandu.quickweather.utils.setNewWeatherLocation
 import com.manishjandu.quickweather.utils.slideToSearchScreenSendSignal
+import com.manishjandu.quickweather.utils.slideToWeatherScreenSendSignal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
@@ -34,6 +38,12 @@ class WeatherViewModel @Inject constructor(
 
     private val weatherEventChannel = Channel<WeatherEvent>()
     val weatherEvent = weatherEventChannel.receiveAsFlow()
+
+    private var _locations = MutableLiveData<List<LocationsItem>>()
+    val locations: LiveData<List<LocationsItem>> = _locations
+
+    private val searchEventChannel = Channel<SearchEvent>()
+    val searchEvent = searchEventChannel.receiveAsFlow()
 
     private val mFusedLocationProviderClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
@@ -78,11 +88,33 @@ class WeatherViewModel @Inject constructor(
         val result = repo.getLocationDataLocally()
         weatherEventChannel.send(WeatherEvent.LocaleLocation(result.location))
     }
+    fun getLocations(query: String) = viewModelScope.launch {
+        val result = repo.getLocationsNames(query)
+        if (result != null && result.isNotEmpty()) {
+            _locations.value = result
+        } else {
+            searchEventChannel.send(SearchEvent.LocationNotFound)
+        }
+    }
+
+    fun setNewLocationAndSlide(newLocation: String) = viewModelScope.launch {
+        slideToWeatherScreenSendSignal()
+        setNewWeatherLocation(newLocation)
+    }
+
+    fun getCurrentLocation() = viewModelScope.launch {
+        slideToWeatherScreenSendSignal()
+        setCurrentWeatherLocation()
+    }
 
     sealed class WeatherEvent {
         object ShowErrorMessage : WeatherEvent()
         data class LastLocation(val lastLocation: String) : WeatherEvent()
         data class LocaleLocation(val location: String) : WeatherEvent()
         object Refreshed:WeatherEvent()
+    }
+
+    sealed class SearchEvent {
+        object LocationNotFound : SearchEvent()
     }
 }

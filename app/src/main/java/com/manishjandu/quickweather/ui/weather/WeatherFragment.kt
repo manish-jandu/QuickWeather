@@ -13,7 +13,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.afollestad.assent.GrantResult
@@ -25,10 +25,11 @@ import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
-import com.manishjandu.quickweather.ui.weather.WeatherViewModel.WeatherEvent
 import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.getTimeDifference
 import com.manishjandu.quickweather.utils.utilEvent
+import com.manishjandu.quickweather.viewmodels.WeatherViewModel
+import com.manishjandu.quickweather.viewmodels.WeatherViewModel.WeatherEvent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 
@@ -37,7 +38,7 @@ private const val TAG = "WeatherFragment"
 @AndroidEntryPoint
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
-    private val weatherViewModel: WeatherViewModel by viewModels()
+    private val weatherViewModel: WeatherViewModel by activityViewModels()
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: ForecastAdapter

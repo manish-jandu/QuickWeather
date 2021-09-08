@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.databinding.FragmentSearchBinding
+import com.manishjandu.quickweather.viewmodels.WeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 
@@ -22,7 +23,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private val binding get() = _binding!!
     private lateinit var suggestionAdapter: SuggestionsAdapter
     private lateinit var searchView: SearchView
-    private val searchViewModel: SearchViewModel by viewModels()
+    private val searchViewModel: WeatherViewModel by activityViewModels()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -68,7 +69,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             searchViewModel.searchEvent.collect { event ->
                 when (event) {
-                    is SearchViewModel.SearchEvent.LocationNotFound -> {
+                    is WeatherViewModel.SearchEvent.LocationNotFound -> {
                         Snackbar.make(requireView(), "Location not Found", Snackbar.LENGTH_SHORT)
                             .show()
                     }
