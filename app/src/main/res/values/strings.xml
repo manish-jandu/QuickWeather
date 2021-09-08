@@ -31,4 +31,7 @@
     <string name="firstTimeLocation">firstLocation</string>
     <string name="powered_by_weatherapi_com">Powered by weatherapi.com</string>
     <string name="icons_by_flaticon_com">Icons by FlatIcon.com</string>
+    <string name="error_image">Error Image</string>
+    <string name="something_went_wrong">Something went wrong.</string>
+    <string name="move_to_settings">Move to Settings</string>
 </resources>

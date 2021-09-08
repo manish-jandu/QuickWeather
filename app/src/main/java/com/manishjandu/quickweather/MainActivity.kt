@@ -9,18 +9,28 @@ import androidx.viewpager2.widget.ViewPager2
 import com.manishjandu.quickweather.databinding.ActivityMainBinding
 import com.manishjandu.quickweather.ui.search.SearchFragment
 import com.manishjandu.quickweather.ui.weather.WeatherFragment
-import com.manishjandu.quickweather.utils.Constants.positionSearchFragment
-import com.manishjandu.quickweather.utils.Constants.positionWeatherFragment
+import com.manishjandu.quickweather.utils.Constants.POSITION_SEARCH_FRAGMENT
+import com.manishjandu.quickweather.utils.Constants.POSITION_WEATHER_FRAGMENT
+import com.manishjandu.quickweather.utils.InternetConnectivity.ConnectivityManager
 import com.manishjandu.quickweather.utils.UtilsEvent
 import com.manishjandu.quickweather.utils.utilEvent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     lateinit var viewPager2: ViewPager2
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
+
+    @Inject
+    lateinit var connectivityManager: ConnectivityManager
+
+    override fun onStart() {
+        super.onStart()
+        connectivityManager.registerConnectionObserver()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,10 +44,10 @@ class MainActivity : FragmentActivity() {
             utilEvent.collect { event ->
                 when (event) {
                     UtilsEvent.SlideToSearchScreen -> {
-                        viewPager2.currentItem = positionSearchFragment
+                        viewPager2.currentItem = POSITION_SEARCH_FRAGMENT
                     }
                     UtilsEvent.SlideToWeatherScreen -> {
-                        viewPager2.currentItem = positionWeatherFragment
+                        viewPager2.currentItem = POSITION_WEATHER_FRAGMENT
                     }
                 }
             }
@@ -68,6 +78,7 @@ class MainActivity : FragmentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+        connectivityManager.unregisterConnectionObserver()
     }
 }
 

@@ -1,145 +1,158 @@
 package com.manishjandu.quickweather.ui.weather
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.location.LocationManager
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.afollestad.assent.GrantResult
+import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.assent.Permission
 import com.afollestad.assent.askForPermissions
 import com.afollestad.assent.isAllGranted
 import com.bumptech.glide.Glide
-import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
-import com.manishjandu.quickweather.utils.UtilsEvent
+import com.manishjandu.quickweather.utils.Constants.POSITION_SEARCH_FRAGMENT
+import com.manishjandu.quickweather.utils.InternetConnectivity.ConnectivityManager
+import com.manishjandu.quickweather.utils.LocationResult
+import com.manishjandu.quickweather.utils.NetworkResult
 import com.manishjandu.quickweather.utils.getTimeDifference
-import com.manishjandu.quickweather.utils.utilEvent
 import com.manishjandu.quickweather.viewmodels.WeatherViewModel
-import com.manishjandu.quickweather.viewmodels.WeatherViewModel.WeatherEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
 private const val TAG = "WeatherFragment"
 
 @AndroidEntryPoint
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
-    private val weatherViewModel: WeatherViewModel by activityViewModels()
+    private val viewModel: WeatherViewModel by activityViewModels()
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
-    private lateinit var adapter: ForecastAdapter
+    private val forecastAdapter: ForecastAdapter = ForecastAdapter()
+    private var lastLocation: String? = null
 
-    override fun onStart() {
-        super.onStart()
-        checkInternetAndLocationAccess()
-    }
+    @Inject
+    lateinit var connectivityManager: ConnectivityManager
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentWeatherBinding.bind(view)
-        val swipeRefreshWeather = binding.swipeRefreshWeather
 
-        adapter = ForecastAdapter()
-        binding.recyclerViewWeatherForecast.adapter = adapter
-        binding.recyclerViewWeatherForecast.layoutManager = LinearLayoutManager(requireContext())
+        setViewLoading()
+        observeInternetConnection()
+        setupRecyclerView()
 
         binding.buttonLocation.setOnClickListener {
-            weatherViewModel.slideToSearchScreen()
+            slideToSearchScreen()
         }
+//        binding.swipeRefreshWeather.setOnClickListener {
+//            lastLocation?.let {
+//                getWeatherData(it)
+//            }
+//        }
 
-        swipeRefreshWeather.setOnRefreshListener {
-            checkInternetAndLocationAccess()
+    }
+
+    private fun setupRecyclerView() {
+        binding.recyclerViewWeatherForecast.apply {
+            adapter = forecastAdapter
+            layoutManager = LinearLayoutManager(requireContext())
         }
+    }
 
-        weatherViewModel.weatherData.observe(viewLifecycleOwner) { weatherData ->
-            weatherData?.let {
-                setupWeatherDataInView(weatherData)
+    private fun observeInternetConnection() {
+        connectivityManager.isNetworkAvailable.observe(viewLifecycleOwner) {
+            it?.let { isInternetAvailable ->
+                if (isInternetAvailable) {
+                    checkDataInDatabase()
+                } else {
+                    setViewError()
+                }
             }
         }
+    }
 
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            weatherViewModel.weatherEvent.collect { event ->
-                when (event) {
-                    is  WeatherEvent.ShowErrorMessage -> {
-                        Snackbar.make(
-                            requireView(),
-                            "Couldn't load,please try again",
-                            Snackbar.LENGTH_LONG
-                        ).setAction("try again") {
-                            weatherViewModel.getLastLocation()
-                        }.setActionTextColor(Color.RED).show()
+    private fun checkDataInDatabase() {
+        viewModel.getLocationDataFromDatabase()
+        viewModel.location.observe(viewLifecycleOwner) {
+            it?.let { locationInLatLong ->
+                when (locationInLatLong) {
+                    is LocationResult.Error -> {
+                        setViewError(locationInLatLong.message)
                     }
-                    is WeatherEvent.LastLocation -> {
-                        setLocationLocaleAndGetData(event.lastLocation)
-                    }
-                    is WeatherEvent.LocaleLocation -> {
-                        if (event.location == requireContext().getString(R.string.firstTimeLocation)) {
-                            weatherViewModel.getLastLocation()
+                    is LocationResult.Success -> {
+                        if (locationInLatLong.location == requireContext().getString(R.string.firstTimeLocation)) {
+                            //Default Location,so get new
+                            checkAndSetPermission()
                         } else {
-                            weatherViewModel.getWeatherData(event.location)
+                            getWeatherData(locationInLatLong.location)
+                            saveInRoom(locationInLatLong.location)
                         }
                     }
-                    is WeatherEvent.Refreshed ->{
-                        swipeRefreshWeather.isRefreshing = false
-                    }
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            utilEvent.collect { event ->
-                when (event) {
-                    is UtilsEvent.NewWeatherLocation -> {
-                        setLocationLocaleAndGetData(event.newLocation)
-                    }
-                    is UtilsEvent.CurrentWeatherLocation -> {
-                        weatherViewModel.getLastLocation()
-                    }
                 }
             }
         }
     }
 
-    private fun setLocationLocaleAndGetData(newLocation: String) {
-        weatherViewModel.setLocationDataInRoom(newLocation)
-        weatherViewModel.getWeatherData(newLocation)
+    private fun saveInRoom(location: String) {
+        viewModel.setLocationDataInRoom(location)
     }
 
+    private fun checkAndSetPermission() {
+        if (hasPermission()) {
+            //Todo:get Location,get Data,Save in Room
+            checkIfLocationIsEnabled()
+        } else {
+            setPermissions()
+        }
+    }
 
-    private fun showErrorSnackBar(
-        buttonText: String? = "try again",
-        error: String,
-        reaction: () -> Unit
-    ) {
-        Snackbar.make(requireView(), error, Snackbar.LENGTH_INDEFINITE)
-            .setAction(buttonText) {
-                reaction()
+    private fun checkIfLocationIsEnabled() {
+        if (isLocationEnabled()) {
+            getLastLocation()
+        } else {
+            setViewLocationNotEnabled()
+        }
+    }
+
+    private fun getLastLocation() {
+        viewModel.getLastLocation()
+    }
+
+    private fun getWeatherData(location: String) {
+        viewModel.getWeatherData(location)
+        viewModel.weatherData.observe(viewLifecycleOwner) { response ->
+            when (response) {
+                is NetworkResult.Error -> {
+                    setViewError(response.message.toString())
+                }
+                is NetworkResult.Loading -> {
+                    setViewLoading()
+                }
+                is NetworkResult.Success -> {
+                    setViewWeather()
+                    setupWeatherDataInView(response.data!!)
+                }
             }
-            .setActionTextColor(Color.RED).show()
+        }
     }
 
     @SuppressLint("SetTextI18n")
     private fun setupWeatherDataInView(weatherData: WeatherData) {
         val current = weatherData.current
+        val diff =
+            getTimeDifference(weatherData.location.localtime, weatherData.current.lastUpdated)
+
+        forecastAdapter.submitList(weatherData.forecast.forecastday)
 
         binding.apply {
             textViewLocationName.text = weatherData.location.name
-            //
-            val diff =
-                getTimeDifference(weatherData.location.localtime, weatherData.current.lastUpdated)
             textViewUpdate.text = "last updated $diff min ago."
             textViewTemperature.text = "${(current.tempC).toInt()}\u00B0"
             textViewWeatherDescription.text = current.condition.text
@@ -150,9 +163,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 "${current.precipMm} mm"
             textViewFeelsLike.text = current.feelslikeC.toString()
             textViewUvIndex.text = current.uv.toString()
-
-            adapter.submitList(weatherData.forecast.forecastday)
-
             Glide.with(requireView())
                 .load("https:${weatherData.current.condition.icon}")
                 .centerCrop()
@@ -162,124 +172,105 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
 
+    private fun setViewLoading() {
+        binding.apply {
+            progressBar.visibility = View.VISIBLE
+            groupError.visibility = View.INVISIBLE
+            groupWeather.visibility = View.INVISIBLE
+            textViewErrorSetting.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setViewError(message: String = "No Internet Connection") {
+        binding.apply {
+            textViewError.text = message
+            groupError.visibility = View.VISIBLE
+            groupWeather.visibility = View.INVISIBLE
+            progressBar.visibility = View.INVISIBLE
+            textViewErrorSetting.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setViewNoLocationPermission() {
+        binding.textViewErrorSetting.apply {
+            text = "Click here to go to search page."
+            visibility = View.VISIBLE
+            setOnClickListener {
+                slideToSearchScreen()
+            }
+        }
+
+        binding.apply {
+            textViewError.text = "Location Permission Required"
+            groupError.visibility = View.VISIBLE
+            groupWeather.visibility = View.INVISIBLE
+            progressBar.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setViewLocationNotEnabled() {
+        binding.textViewErrorSetting.apply {
+            text = "Click here to go to settings page."
+            visibility = View.VISIBLE
+            setOnClickListener {
+                moveToLocationSettings()
+            }
+        }
+
+        binding.apply {
+            textViewError.text = "Location is not enabled"
+            groupError.visibility = View.VISIBLE
+            groupWeather.visibility = View.INVISIBLE
+            progressBar.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setViewWeather() {
+        binding.apply {
+            groupWeather.visibility = View.VISIBLE
+            groupError.visibility = View.INVISIBLE
+            textViewErrorSetting.visibility = View.INVISIBLE
+            progressBar.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun slideToSearchScreen() {
+        val viewPager2 = requireActivity().findViewById<ViewPager2>(R.id.view_pager)
+        viewPager2.currentItem = POSITION_SEARCH_FRAGMENT
+    }
+
     private fun moveToLocationSettings() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         startActivity(intent)
     }
 
-    private fun checkInternetAndLocationAccess() {
-        val internetEnabled = checkInternetEnabled()
-        val locationEnabled = checkLocationEnabled()
-
-        if (internetEnabled && locationEnabled) {
-            checkAndSetPermission()
-
-        } else if (!internetEnabled) {
-            showErrorSnackBar(error = "Enable Mobile Data and try again") {
-                checkInternetAndLocationAccess()
-            }
-
-        } else if (!locationEnabled) {
-            showErrorSnackBar(buttonText = "Settings", error = "Enable Location services") {
-                moveToLocationSettings()
-            }
-        }
-    }
-
-    private fun checkInternetEnabled(): Boolean {
-        val connectivityManager =
-            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities =
-                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-            return when {
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-                else -> false
-            }
-        } else {
-            connectivityManager.activeNetworkInfo?.run {
-                return when (type) {
-                    ConnectivityManager.TYPE_WIFI -> true
-                    ConnectivityManager.TYPE_MOBILE -> true
-                    ConnectivityManager.TYPE_ETHERNET -> true
-                    else -> false
-                }
-            }
-        }
-        return false
-    }
-
-    private fun checkLocationEnabled(): Boolean {
+    private fun isLocationEnabled(): Boolean {
         val locationManager =
             requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        var gps_enabled = false
+        var gpsEnabled = false
         try {
-            gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return gps_enabled
+        return gpsEnabled
     }
 
 
-    private fun showLocationPermissionAlertDialog(
-        message: String,
-        actionTitle: String,
-        action: () -> Unit
-    ) {
-        AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton(actionTitle) { _, _ ->
-                action()
-            }.setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun checkAndSetPermission() {
-        if (!checkPermission()) {
-            setPermissions()
-        } else {
-            weatherViewModel.getLocationDataFromRoom()
-        }
-    }
-
-    private fun checkPermission(): Boolean {
+    private fun hasPermission(): Boolean {
         return isAllGranted(Permission.ACCESS_COARSE_LOCATION)
     }
 
     private fun setPermissions() {
-
         askForPermissions(
             Permission.ACCESS_COARSE_LOCATION
         ) { result ->
-
             if (result.isAllGranted()) {
-                weatherViewModel.getLocationDataFromRoom()
+                checkIfLocationIsEnabled()
+            } else {
+                setViewNoLocationPermission()
             }
-
-            if (result[Permission.ACCESS_COARSE_LOCATION] == GrantResult.DENIED
-            ) {
-                showLocationPermissionAlertDialog(
-                    "Location Service is required for this app to work properly",
-                    "Allow"
-                ) {
-                    setPermissions()
-                }
-            }
-
-            if (result[Permission.ACCESS_COARSE_LOCATION] == GrantResult.PERMANENTLY_DENIED
-            ) {
-                weatherViewModel.slideToSearchScreen()
-            }
-
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
     }
 
     override fun onDestroyView() {

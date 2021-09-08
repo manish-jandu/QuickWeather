@@ -1,8 +1,6 @@
 package com.manishjandu.quickweather.utils
 
-import androidx.fragment.app.viewModels
-import com.google.android.gms.location.LocationServices
-import com.manishjandu.quickweather.ui.weather.WeatherViewModel
+
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.text.SimpleDateFormat
