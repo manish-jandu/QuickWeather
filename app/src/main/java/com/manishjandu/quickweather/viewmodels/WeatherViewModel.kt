@@ -58,7 +58,7 @@ class WeatherViewModel @Inject constructor(
                 val lastLocation = "$mLatitude,$mLongitude"
                 _location.postValue(LocationResult.Success(lastLocation))
             } else {
-                _location.postValue(LocationResult.Error("something went wrong"))
+                _location.postValue(LocationResult.Error(Constants.CANNOT_GET_LAST_LOCATION))
             }
         }
     }

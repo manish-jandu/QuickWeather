@@ -10,6 +10,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.assent.Permission
 import com.afollestad.assent.askForPermissions
@@ -18,6 +19,7 @@ import com.bumptech.glide.Glide
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.data.models.WeatherData
 import com.manishjandu.quickweather.databinding.FragmentWeatherBinding
+import com.manishjandu.quickweather.utils.Constants.CANNOT_GET_LAST_LOCATION
 import com.manishjandu.quickweather.utils.Constants.POSITION_SEARCH_FRAGMENT
 import com.manishjandu.quickweather.utils.InternetConnectivity.ConnectivityManager
 import com.manishjandu.quickweather.utils.LocationResult
@@ -36,13 +38,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
     private val forecastAdapter: ForecastAdapter = ForecastAdapter()
-    private var lastLocation: String? = null
+    private lateinit var swipeRefreshWeather: SwipeRefreshLayout
 
     @Inject
     lateinit var connectivityManager: ConnectivityManager
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentWeatherBinding.bind(view)
+        swipeRefreshWeather = binding.swipeRefreshWeather
 
         setViewLoading()
         observeInternetConnection()
@@ -51,12 +54,15 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         binding.buttonLocation.setOnClickListener {
             slideToSearchScreen()
         }
-//        binding.swipeRefreshWeather.setOnClickListener {
-//            lastLocation?.let {
-//                getWeatherData(it)
-//            }
-//        }
+        swipeRefreshWeather.setOnRefreshListener {
+            checkDataInDatabase()
+        }
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkDataInDatabase()
     }
 
     private fun setupRecyclerView() {
@@ -82,6 +88,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         viewModel.getLocationDataFromDatabase()
         viewModel.location.observe(viewLifecycleOwner) {
             it?.let { locationInLatLong ->
+                stopRefreshingIcon()
                 when (locationInLatLong) {
                     is LocationResult.Error -> {
                         setViewError(locationInLatLong.message)
@@ -109,6 +116,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             //Todo:get Location,get Data,Save in Room
             checkIfLocationIsEnabled()
         } else {
+            setViewNoLocationPermission()
             setPermissions()
         }
     }
@@ -130,7 +138,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         viewModel.weatherData.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is NetworkResult.Error -> {
-                    setViewError(response.message.toString())
+                    if (response.message.toString() == CANNOT_GET_LAST_LOCATION) {
+                        setViewNoLocationPermission("Couldn't get last location.")
+                    } else {
+                        setViewError(response.message.toString())
+                    }
                 }
                 is NetworkResult.Loading -> {
                     setViewLoading()
@@ -173,6 +185,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
 
     private fun setViewLoading() {
+        stopRefreshingIcon()
         binding.apply {
             progressBar.visibility = View.VISIBLE
             groupError.visibility = View.INVISIBLE
@@ -182,6 +195,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     private fun setViewError(message: String = "No Internet Connection") {
+        stopRefreshingIcon()
         binding.apply {
             textViewError.text = message
             groupError.visibility = View.VISIBLE
@@ -191,7 +205,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
     }
 
-    private fun setViewNoLocationPermission() {
+    private fun setViewNoLocationPermission(message: String = "Location Permission Required") {
+        stopRefreshingIcon()
         binding.textViewErrorSetting.apply {
             text = "Click here to go to search page."
             visibility = View.VISIBLE
@@ -199,9 +214,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 slideToSearchScreen()
             }
         }
-
         binding.apply {
-            textViewError.text = "Location Permission Required"
+            textViewError.text = message
             groupError.visibility = View.VISIBLE
             groupWeather.visibility = View.INVISIBLE
             progressBar.visibility = View.INVISIBLE
@@ -209,6 +223,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     private fun setViewLocationNotEnabled() {
+        stopRefreshingIcon()
         binding.textViewErrorSetting.apply {
             text = "Click here to go to settings page."
             visibility = View.VISIBLE
@@ -216,7 +231,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 moveToLocationSettings()
             }
         }
-
         binding.apply {
             textViewError.text = "Location is not enabled"
             groupError.visibility = View.VISIBLE
@@ -226,12 +240,17 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     private fun setViewWeather() {
+        stopRefreshingIcon()
         binding.apply {
             groupWeather.visibility = View.VISIBLE
             groupError.visibility = View.INVISIBLE
             textViewErrorSetting.visibility = View.INVISIBLE
             progressBar.visibility = View.INVISIBLE
         }
+    }
+
+    private fun stopRefreshingIcon() {
+        swipeRefreshWeather.isRefreshing = false
     }
 
     private fun slideToSearchScreen() {
@@ -265,7 +284,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         askForPermissions(
             Permission.ACCESS_COARSE_LOCATION
         ) { result ->
-            if (result.isAllGranted()) {
+            setViewLoading()
+            if (result.isAllGranted(Permission.ACCESS_COARSE_LOCATION)) {
                 checkIfLocationIsEnabled()
             } else {
                 setViewNoLocationPermission()

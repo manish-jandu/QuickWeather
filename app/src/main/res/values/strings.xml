@@ -34,4 +34,5 @@
     <string name="error_image">Error Image</string>
     <string name="something_went_wrong">Something went wrong.</string>
     <string name="move_to_settings">Move to Settings</string>
+    <string name="pull_to_refresh">Pull to refresh.</string>
 </resources>

@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="invisible"
-            app:constraint_referenced_ids="text_view_error,image_view_error" />
+            app:constraint_referenced_ids="text_view_error,image_view_error,text_view_pull_to_refresh" />
 
         <androidx.constraintlayout.widget.Group
             android:id="@+id/group_weather"
@@ -376,6 +376,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="13dp"
+            android:textSize="16sp"
             android:alpha="0.8"
             android:text="@string/something_went_wrong"
             android:visibility="invisible"
@@ -384,16 +385,27 @@
             app:layout_constraintTop_toBottomOf="@+id/image_view_error" />
 
         <TextView
+            android:id="@+id/text_view_pull_to_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pull_to_refresh"
+            app:layout_constraintStart_toStartOf="@id/text_view_error"
+            app:layout_constraintEnd_toEndOf="@id/text_view_error"
+            app:layout_constraintTop_toBottomOf="@id/text_view_error"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
             android:id="@+id/text_view_error_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
+            android:textSize="20sp"
             android:text="@string/move_to_settings"
             android:textStyle="bold"
             android:visibility="invisible"
-            app:layout_constraintEnd_toEndOf="@id/text_view_error"
-            app:layout_constraintStart_toStartOf="@id/text_view_error"
-            app:layout_constraintTop_toBottomOf="@id/text_view_error" />
+            app:layout_constraintEnd_toEndOf="@id/text_view_pull_to_refresh"
+            app:layout_constraintStart_toStartOf="@id/text_view_pull_to_refresh"
+            app:layout_constraintTop_toBottomOf="@id/text_view_pull_to_refresh" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
