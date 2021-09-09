@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Projects/a-Practise-Project/QuickWeather/app/src/main/res/layout/fragment_search.xml" value="0.25" />
         <entry key="..\:/Projects/a-Practise-Project/QuickWeather/app/src/main/res/layout/fragment_weather.xml" value="0.15" />
         <entry key="..\:/Projects/a-Practise-Project/QuickWeather/app/src/main/res/layout/item_suggestion.xml" value="0.13333333333333333" />
         <entry key="..\:/Projects/a-Practise-Project/QuickWeather/app/src/main/res/layout/item_weather_forecast.xml" value="0.5" />

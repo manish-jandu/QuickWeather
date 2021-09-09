@@ -28,9 +28,7 @@ suspend fun slideToWeatherScreenSendSignal() {
     UtilsEventChannel.send(UtilsEvent.SlideToWeatherScreen)
 }
 
-suspend fun setNewWeatherLocation(location: String) {
-    UtilsEventChannel.send(UtilsEvent.NewWeatherLocation(location))
-}
+
 
 suspend fun setCurrentWeatherLocation() {
     UtilsEventChannel.send(UtilsEvent.CurrentWeatherLocation)

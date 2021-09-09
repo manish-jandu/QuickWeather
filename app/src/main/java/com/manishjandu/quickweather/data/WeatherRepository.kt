@@ -3,7 +3,6 @@ package com.manishjandu.quickweather.data
 
 import com.manishjandu.quickweather.data.local.LocationDao
 import com.manishjandu.quickweather.data.local.LocationInLongLat
-import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.remote.WeatherAPI
 import javax.inject.Inject
 
@@ -17,13 +16,7 @@ class WeatherRepository @Inject constructor(
     suspend fun getWeatherFromRemote(lastLocation: String) = api.getWeather(lastLocation)
 
 
-    suspend fun getLocationsNames(locationQuery: String): List<LocationsItem>? {
-        val result = api.getLocationNames(locationQuery)
-        if (result.isSuccessful && result.code() == 200) {
-            return result.body()
-        }
-        return result.body()
-    }
+    suspend fun getLocationsNames(locationQuery: String)= api.getLocationNames(locationQuery)
 
     suspend fun setLocationDataLocally(newLocation: String) {
         val new = LocationInLongLat(newLocation)

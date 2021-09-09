@@ -5,14 +5,16 @@ import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.snackbar.Snackbar
 import com.manishjandu.quickweather.R
 import com.manishjandu.quickweather.databinding.FragmentSearchBinding
+import com.manishjandu.quickweather.utils.Constants.POSITION_WEATHER_FRAGMENT
+import com.manishjandu.quickweather.utils.NetworkResult
 import com.manishjandu.quickweather.viewmodels.WeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 
 private const val TAG = "SearchFragment"
 
@@ -23,7 +25,8 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private val binding get() = _binding!!
     private lateinit var suggestionAdapter: SuggestionsAdapter
     private lateinit var searchView: SearchView
-    private val searchViewModel: WeatherViewModel by activityViewModels()
+    private lateinit var recyclerView: RecyclerView
+    private val viewModel: WeatherViewModel by activityViewModels()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,64 +34,104 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         suggestionAdapter = SuggestionsAdapter(SuggestionClick())
 
         searchView = binding.searchView
-        val recyclerViewCitiesSuggestion = binding.recyclerViewCitiesSuggestion
+        recyclerView = binding.recyclerViewCitiesSuggestion
 
-        recyclerViewCitiesSuggestion.adapter = suggestionAdapter
-        recyclerViewCitiesSuggestion.layoutManager = LinearLayoutManager(requireContext())
-        recyclerViewCitiesSuggestion.visibility = View.GONE
+        setupRecyclerView()
+        observeSearchQueryChange()
+        observeLocationResults()
 
         binding.floatingButtonAddLocation.setOnClickListener {
-            getCurrentLocation()
+            viewModel.getLastLocation()
+            slideToWeatherScreen()
         }
+    }
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query != null) {
-                    searchViewModel.getLocations(query)
-                }
-                return false
-            }
-
-            override fun onQueryTextChange(newQuery: String?): Boolean {
-                if (newQuery.isNullOrEmpty()) {
-                    recyclerViewCitiesSuggestion.visibility = View.GONE
-                    suggestionAdapter.submitList(null)
-                }
-                return false
-            }
-        })
-
-
-        searchViewModel.locations.observe(viewLifecycleOwner) {
-            it?.let {
-                recyclerViewCitiesSuggestion.visibility = View.VISIBLE
-                suggestionAdapter.submitList(it)
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            searchViewModel.searchEvent.collect { event ->
-                when (event) {
-                    is WeatherViewModel.SearchEvent.LocationNotFound -> {
-                        Snackbar.make(requireView(), "Location not Found", Snackbar.LENGTH_SHORT)
-                            .show()
+    private fun observeLocationResults() {
+        viewModel.multipleLocations.observe(viewLifecycleOwner) {
+            it?.let { response ->
+                when (response) {
+                    is NetworkResult.Error -> {
+                        hideLoading()
+                        hideLocationsList()
+                        showSnackBar(response.message.toString())
+                    }
+                    is NetworkResult.Loading -> {
+                        showLoading()
+                    }
+                    is NetworkResult.Success -> {
+                        hideLoading()
+                        showLocationsList()
+                        suggestionAdapter.submitList(response.data)
                     }
                 }
             }
         }
     }
 
-    inner class SuggestionClick : SuggestionsAdapter.OnClick {
-        override fun onClicked(newLocation: String) {
-            suggestionAdapter.submitList(null)
-            searchView.clearFocus()
-            searchView.setQuery("", false)
-            searchViewModel.setNewLocationAndSlide(newLocation)
+    private fun setupRecyclerView() {
+        binding.recyclerViewCitiesSuggestion.apply {
+            adapter = suggestionAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+            visibility = View.GONE
         }
     }
 
-    private fun getCurrentLocation() {
-        searchViewModel.getCurrentLocation()
+    private fun observeSearchQueryChange() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query != null) {
+                    viewModel.getLocations(query)
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(newQuery: String?): Boolean {
+                if (newQuery.isNullOrEmpty()) {
+                    hideLocationsList()
+                }
+                return false
+            }
+        })
+    }
+
+    inner class SuggestionClick : SuggestionsAdapter.OnClick {
+        override fun onClicked(newLocation: String) {
+            searchView.clearFocus()
+            searchView.setQuery("", false)
+            hideLocationsList()
+            setNewWeatherLocation(newLocation)
+            slideToWeatherScreen()
+        }
+    }
+
+    private fun setNewWeatherLocation(newLocation: String) {
+        viewModel.setNewLocation(newLocation)
+    }
+
+    private fun showSnackBar(message: String) {
+        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun showLocationsList() {
+        binding.recyclerViewCitiesSuggestion.visibility = View.VISIBLE
+    }
+
+    private fun hideLocationsList() {
+        suggestionAdapter.submitList(null)
+        binding.recyclerViewCitiesSuggestion.visibility = View.GONE
+    }
+
+    private fun slideToWeatherScreen() {
+        val viewPager2 = requireActivity().findViewById<ViewPager2>(R.id.view_pager)
+        viewPager2.currentItem = POSITION_WEATHER_FRAGMENT
+    }
+
+    private fun showLoading() {
+        binding.progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideLoading() {
+        binding.progressBar.visibility = View.INVISIBLE
     }
 
     override fun onDestroyView() {

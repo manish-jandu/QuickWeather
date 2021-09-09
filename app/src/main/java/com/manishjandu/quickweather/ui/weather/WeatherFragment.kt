@@ -75,6 +75,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private fun observeInternetConnection() {
         connectivityManager.isNetworkAvailable.observe(viewLifecycleOwner) {
             it?.let { isInternetAvailable ->
+                viewModel.isInternetAvailable = isInternetAvailable
                 if (isInternetAvailable) {
                     checkDataInDatabase()
                 } else {

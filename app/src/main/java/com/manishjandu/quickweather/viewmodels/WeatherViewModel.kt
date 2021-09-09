@@ -12,12 +12,12 @@ import com.google.android.gms.location.LocationServices
 import com.manishjandu.quickweather.data.WeatherRepository
 import com.manishjandu.quickweather.data.models.LocationsItem
 import com.manishjandu.quickweather.data.models.WeatherData
-import com.manishjandu.quickweather.utils.*
+import com.manishjandu.quickweather.utils.Constants
+import com.manishjandu.quickweather.utils.LocationResult
+import com.manishjandu.quickweather.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
@@ -30,6 +30,7 @@ class WeatherViewModel @Inject constructor(
     private val repo: WeatherRepository,
     @ApplicationContext context: Context
 ) : ViewModel() {
+    var isInternetAvailable: Boolean? = null
 
     private var _weatherData = MutableLiveData<NetworkResult<WeatherData>>()
     val weatherData: LiveData<NetworkResult<WeatherData>> = _weatherData
@@ -37,11 +38,8 @@ class WeatherViewModel @Inject constructor(
     private var _location = MutableLiveData<LocationResult>()
     val location: LiveData<LocationResult> = _location
 
-    private var _locations = MutableLiveData<List<LocationsItem>>()
-    val locations: LiveData<List<LocationsItem>> = _locations
-
-    private val searchEventChannel = Channel<SearchEvent>()
-    val searchEvent = searchEventChannel.receiveAsFlow()
+    private var _multipleLocations = MutableLiveData<NetworkResult<List<LocationsItem>>>()
+    val multipleLocations: LiveData<NetworkResult<List<LocationsItem>>> = _multipleLocations
 
     private val mFusedLocationProviderClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
@@ -87,7 +85,7 @@ class WeatherViewModel @Inject constructor(
             response.message().contains("timeout") -> {
                 NetworkResult.Error("Timeout")
             }
-            response.code() == 402-> {
+            response.code() == 402 -> {
                 NetworkResult.Error("Api Limit")
             }
             response.isSuccessful -> {
@@ -100,26 +98,48 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    fun setNewLocation(newLocation: String) {
+        _location.postValue(LocationResult.Success(newLocation))
+    }
+
     fun getLocations(query: String) = viewModelScope.launch {
-        val result = repo.getLocationsNames(query)
-        if (result != null && result.isNotEmpty()) {
-            _locations.value = result
+        _multipleLocations.postValue(NetworkResult.Loading())
+        if (checkInternetConnection()) {
+            try {
+                val result = repo.getLocationsNames(query)
+                _multipleLocations.postValue(handleMultipleLocationsResponse(result))
+            } catch (e: Exception) {
+                _multipleLocations.postValue(NetworkResult.Error(e.message.toString()))
+            }
         } else {
-            searchEventChannel.send(SearchEvent.LocationNotFound)
+            _multipleLocations.postValue(NetworkResult.Error("No Internet Connection."))
         }
     }
 
-    fun setNewLocationAndSlide(newLocation: String) = viewModelScope.launch {
-        slideToWeatherScreenSendSignal()
-        setNewWeatherLocation(newLocation)
+    private fun handleMultipleLocationsResponse(response: Response<List<LocationsItem>>): NetworkResult<List<LocationsItem>> {
+        return when {
+            response.message().contains("timeout") -> {
+                NetworkResult.Error("Timeout")
+            }
+            response.code() == 402 -> {
+                NetworkResult.Error("Api Limit")
+            }
+            response.isSuccessful -> {
+                val result = response.body()!!
+                NetworkResult.Success(result)
+            }
+            else -> {
+                NetworkResult.Error(response.message())
+            }
+        }
     }
 
-    fun getCurrentLocation() = viewModelScope.launch {
-        slideToWeatherScreenSendSignal()
-        setCurrentWeatherLocation()
+    private fun checkInternetConnection(): Boolean {
+        return if (isInternetAvailable != null) {
+            isInternetAvailable == true
+        } else {
+            false
+        }
     }
 
-    sealed class SearchEvent {
-        object LocationNotFound : SearchEvent()
-    }
 }
