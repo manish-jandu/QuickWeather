@@ -385,16 +385,6 @@
             app:layout_constraintTop_toBottomOf="@+id/image_view_error" />
 
         <TextView
-            android:id="@+id/text_view_pull_to_refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/pull_to_refresh"
-            app:layout_constraintStart_toStartOf="@id/text_view_error"
-            app:layout_constraintEnd_toEndOf="@id/text_view_error"
-            app:layout_constraintTop_toBottomOf="@id/text_view_error"
-            android:layout_marginTop="16dp"/>
-
-        <TextView
             android:id="@+id/text_view_error_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -403,9 +393,20 @@
             android:text="@string/move_to_settings"
             android:textStyle="bold"
             android:visibility="invisible"
-            app:layout_constraintEnd_toEndOf="@id/text_view_pull_to_refresh"
-            app:layout_constraintStart_toStartOf="@id/text_view_pull_to_refresh"
-            app:layout_constraintTop_toBottomOf="@id/text_view_pull_to_refresh" />
+            app:layout_constraintEnd_toEndOf="@id/text_view_error"
+            app:layout_constraintStart_toStartOf="@id/text_view_error"
+            app:layout_constraintTop_toBottomOf="@id/text_view_error" />
+
+        <TextView
+            android:id="@+id/text_view_pull_to_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+             android:layout_marginBottom="20dp"
+            android:text="@string/pull_to_refresh"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

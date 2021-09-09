@@ -91,7 +91,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 stopRefreshingIcon()
                 when (locationInLatLong) {
                     is LocationResult.Error -> {
-                        setViewError(locationInLatLong.message)
+                        if (locationInLatLong.message == CANNOT_GET_LAST_LOCATION) {
+                            setViewNoLocationPermission("Couldn't get last location.")
+                        } else {
+                            setViewError(locationInLatLong.message)
+                        }
                     }
                     is LocationResult.Success -> {
                         if (locationInLatLong.location == requireContext().getString(R.string.firstTimeLocation)) {
@@ -113,7 +117,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     private fun checkAndSetPermission() {
         if (hasPermission()) {
-            //Todo:get Location,get Data,Save in Room
             checkIfLocationIsEnabled()
         } else {
             setViewNoLocationPermission()
@@ -138,11 +141,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         viewModel.weatherData.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is NetworkResult.Error -> {
-                    if (response.message.toString() == CANNOT_GET_LAST_LOCATION) {
-                        setViewNoLocationPermission("Couldn't get last location.")
-                    } else {
-                        setViewError(response.message.toString())
-                    }
+                    setViewError(response.message.toString())
                 }
                 is NetworkResult.Loading -> {
                     setViewLoading()
@@ -199,16 +198,16 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         binding.apply {
             textViewError.text = message
             groupError.visibility = View.VISIBLE
+            textViewErrorSetting.visibility = View.INVISIBLE
             groupWeather.visibility = View.INVISIBLE
             progressBar.visibility = View.INVISIBLE
-            textViewErrorSetting.visibility = View.INVISIBLE
         }
     }
 
     private fun setViewNoLocationPermission(message: String = "Location Permission Required") {
         stopRefreshingIcon()
         binding.textViewErrorSetting.apply {
-            text = "Click here to go to search page."
+            text = "Slide to Search Page -->"
             visibility = View.VISIBLE
             setOnClickListener {
                 slideToSearchScreen()
