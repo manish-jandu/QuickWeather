@@ -29,6 +29,10 @@ It is written 100% in Kotlin 🙂
 * Import into android studio
 * Build the project and run on an android device or emulator
 
+## Demo
+ - video - [youtube](https://www.youtube.com/watch?v=PRFYkvzj68A)
+ - Drive - [Apk](https://drive.google.com/drive/folders/18BaoM2eH99Tu3WJp6uaiYGaB7loVeLX7?usp=sharing)
+
 ## Screens
 
  <div >
